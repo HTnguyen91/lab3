@@ -12,6 +12,7 @@ class FCMService {
     String? userId, {
     Function(String? screen)? onNotificationTap,
   }) async {
+    if (kIsWeb) return;
     try {
       // Request permission on Android 13+ & iOS
       NotificationSettings settings = await _fcm.requestPermission(

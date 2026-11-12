@@ -96,10 +96,40 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Đã lưu ${_selectedType == 'expense' ? 'khoản chi' : 'khoản thu'} ${Formatters.formatCurrency(parsedAmount)}.',
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: const Color(0xFFECFDF5),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-          backgroundColor: AppColors.textPrimary,
+          content: Row(
+            children: [
+              Container(
+                width: 24,
+                height: 24,
+                decoration: const BoxDecoration(
+                  color: AppColors.success,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check,
+                  size: 16,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Đã lưu ${_selectedType == 'expense' ? 'khoản chi' : 'khoản thu'} ${Formatters.formatCurrency(parsedAmount)}.',
+                  style: const TextStyle(
+                    color: AppColors.success,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
           duration: const Duration(seconds: 3),
         ),
       );

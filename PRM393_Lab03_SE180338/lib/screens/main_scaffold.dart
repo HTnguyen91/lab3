@@ -77,31 +77,73 @@ class _MainScaffoldState extends State<MainScaffold> {
         ],
       ),
       body: IndexedStack(index: _currentIndex, children: screens),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: _navigateToIndex,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Trang chủ',
+      bottomNavigationBar: Container(
+        height: 64,
+        padding: const EdgeInsets.all(8),
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          border: Border(
+            top: BorderSide(color: AppColors.divider, width: 1),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history_outlined),
-            activeIcon: Icon(Icons.history),
-            label: 'Lịch sử',
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildNavItem(0, 'Trang chủ', Icons.home_rounded, Icons.home_outlined),
+            _buildNavItem(1, 'Lịch sử', Icons.history_rounded, Icons.history_outlined),
+            _buildNavItem(2, 'Thống kê', Icons.bar_chart_rounded, Icons.bar_chart_outlined),
+            _buildNavItem(
+              3,
+              'Ngân sách',
+              Icons.account_balance_wallet_rounded,
+              Icons.account_balance_wallet_outlined,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(
+    int index,
+    String label,
+    IconData activeIcon,
+    IconData inactiveIcon,
+  ) {
+    final isSelected = _currentIndex == index;
+    return Expanded(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _navigateToIndex(index),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
+          height: 48,
+          margin: const EdgeInsets.symmetric(horizontal: 2),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.primaryTint : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart_outlined),
-            activeIcon: Icon(Icons.bar_chart),
-            label: 'Thống kê',
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                isSelected ? activeIcon : inactiveIcon,
+                size: 18,
+                color: isSelected ? AppColors.primary : AppColors.textSecondary,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                ),
+              ),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            activeIcon: Icon(Icons.account_balance_wallet),
-            label: 'Ngân sách',
-          ),
-        ],
+        ),
       ),
     );
   }

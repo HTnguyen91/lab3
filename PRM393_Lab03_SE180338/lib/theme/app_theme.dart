@@ -68,11 +68,11 @@ class AppTheme {
         ),
         border: OutlineInputBorder(
           borderRadius: AppSpacing.inputRadius,
-          borderSide: const BorderSide(color: AppColors.inputBorder, width: 1),
+          borderSide: const BorderSide(color: AppColors.controlBorder, width: 1),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: AppSpacing.inputRadius,
-          borderSide: const BorderSide(color: AppColors.inputBorder, width: 1),
+          borderSide: const BorderSide(color: AppColors.controlBorder, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: AppSpacing.inputRadius,

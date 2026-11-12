@@ -75,22 +75,25 @@ class BudgetCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.s12),
 
-          // Progress Bar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: LinearProgressIndicator(
-              value: clampedProgress,
-              minHeight: 10,
-              backgroundColor: AppColors.divider,
-              valueColor: AlwaysStoppedAnimation<Color>(statusColor),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.s12),
-
-          // Details: Hạn mức, Đã chi, Còn lại
+          // Details: Đã chi, Hạn mức, Còn lại (Figma order)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Đã chi', style: AppTextStyles.caption),
+                  const SizedBox(height: 2),
+                  Text(
+                    Formatters.formatCurrency(status.spentAmount),
+                    style: AppTextStyles.buttonAndLabel.copyWith(
+                      color: status.status == BudgetStatus.normal
+                          ? AppColors.textPrimary
+                          : statusColor,
+                    ),
+                  ),
+                ],
+              ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -103,33 +106,49 @@ class BudgetCard extends StatelessWidget {
                 ],
               ),
               Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text('Đã chi', style: AppTextStyles.caption),
-                  const SizedBox(height: 2),
-                  Text(
-                    Formatters.formatCurrency(status.spentAmount),
-                    style: AppTextStyles.buttonAndLabel.copyWith(
-                      color: AppColors.expense,
-                    ),
-                  ),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Còn lại', style: AppTextStyles.caption),
                   const SizedBox(height: 2),
                   Text(
                     Formatters.formatCurrency(status.remainingAmount),
                     style: AppTextStyles.buttonAndLabel.copyWith(
-                      color: AppColors.primary,
+                      color: status.status == BudgetStatus.normal
+                          ? AppColors.textPrimary
+                          : statusColor,
                     ),
                   ),
                 ],
               ),
             ],
           ),
+          const SizedBox(height: AppSpacing.s12),
+
+          // Progress Bar (at bottom per Figma)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: clampedProgress,
+              minHeight: 10,
+              backgroundColor: AppColors.divider,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                status.status == BudgetStatus.normal
+                    ? AppColors.primary
+                    : statusColor,
+              ),
+            ),
+          ),
+          if (status.status == BudgetStatus.warning ||
+              status.status == BudgetStatus.exceeded ||
+              status.status == BudgetStatus.reached) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Xem lại chi tiêu của danh mục.',
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
         ],
       ),
     );

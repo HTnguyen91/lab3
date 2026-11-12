@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  late final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   // Stream of auth changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();
@@ -50,9 +50,11 @@ class AuthService {
 
   /// Sign out
   Future<void> signOut() async {
-    try {
-      await _googleSignIn.signOut();
-    } catch (_) {}
+    if (!kIsWeb) {
+      try {
+        await _googleSignIn.signOut();
+      } catch (_) {}
+    }
     await _auth.signOut();
   }
 }

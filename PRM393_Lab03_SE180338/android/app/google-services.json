@@ -1,42 +1,29 @@
 {
   "project_info": {
-    "project_number": "123456789012",
-    "project_id": "prm393-lab03-se180338",
-    "storage_bucket": "prm393-lab03-se180338.appspot.com"
+    "project_number": "1012788547765",
+    "project_id": "lab3-20aab",
+    "storage_bucket": "lab3-20aab.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:123456789012:android:abcdef1234567890",
+        "mobilesdk_app_id": "1:1012788547765:android:831c9a7298263fe4ad6efc",
         "android_client_info": {
           "package_name": "com.prm393.expense_tracker"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "123456789012-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyA_DEMO_KEY_PRM393_EXPENSE_TRACKER"
+          "current_key": "AIzaSyCXxysp0FyZCuvdh8_dX4zMnfYNf8uz6fs"
         }
       ],
       "services": {
-        "analytics_service": {
-          "status": 1
-        },
         "appinvite_service": {
-          "status": 1,
           "other_platform_oauth_client": []
-        },
-        "ads_service": {
-          "status": 1
         }
       }
     }
   ],
   "configuration_version": "1"
 }
-

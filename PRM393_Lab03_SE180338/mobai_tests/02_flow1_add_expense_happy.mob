@@ -1,0 +1,14 @@
+# Test 02: Lab 2 Flow 1 - Happy Path
+# Goal: Minh Anh records 45.000 VNĐ lunch expense into category "Ăn uống" within 15 seconds
+
+wait for "Thêm khoản chi"
+tap "Thêm khoản chi"
+wait for "Thêm giao dịch"
+tap "Số tiền"
+type "45000"
+tap "Lưu giao dịch"
+wait for "Trang chủ"
+assert "Đã lưu khoản chi 45.000 VNĐ." is visible
+assert "Ăn uống" is visible
+assert "−45.000 VNĐ" is visible
+

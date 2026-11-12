@@ -1,0 +1,22 @@
+# Test 05: Lab 2 Flow 1 - Validation Error & Recovery Path
+# Goal: User enters empty/zero amount, verifies error messages, fixes amount and completes saving
+
+wait for "Thêm khoản chi"
+tap "Thêm khoản chi"
+wait for "Thêm giao dịch"
+tap "Lưu giao dịch"
+assert "Nhập số tiền." is visible
+
+tap "Số tiền"
+type "0"
+tap "Lưu giao dịch"
+assert "Nhập số tiền lớn hơn 0 VNĐ." is visible
+
+# Recovery step: enter valid amount
+tap "Số tiền"
+clear "Số tiền"
+type "45000"
+tap "Lưu giao dịch"
+wait for "Trang chủ"
+assert "Đã lưu khoản chi 45.000 VNĐ." is visible
+

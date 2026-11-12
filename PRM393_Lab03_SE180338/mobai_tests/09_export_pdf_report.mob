@@ -1,0 +1,13 @@
+# Test 09: PDF Report Export and Cloud Storage Upload
+# Goal: Generate monthly PDF report, upload to Cloudinary/Storage, store metadata in Firestore
+
+wait for "Trang chủ"
+tap "Hồ sơ cá nhân & Cài đặt"
+wait for "Hồ sơ & Cài đặt Lab 3"
+assert "Xuất Báo Cáo PDF & Lưu Trữ (Mục 6.4)" is visible
+tap "Xuất & Tải lên Báo cáo PDF"
+wait for "Đã xuất và lưu trữ báo cáo thành công!"
+assert "Đường dẫn tệp đã lưu trên Firestore:" is visible
+tap back
+wait for "Trang chủ"
+

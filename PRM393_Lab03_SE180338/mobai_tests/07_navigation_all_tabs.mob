@@ -1,0 +1,22 @@
+# Test 07: Top-level Navigation
+# Goal: Visit all 4 main tabs and ensure state and content are maintained
+
+wait for "Trang chủ"
+assert "Ngân sách tháng còn lại" is visible
+
+tap "Lịch sử"
+wait for "Lịch sử giao dịch"
+assert "Tất cả" is visible
+
+tap "Thống kê"
+wait for "Thống kê chi tiêu"
+assert "Kỳ thống kê" is visible
+
+tap "Ngân sách"
+wait for "Ngân sách danh mục"
+assert "Tháng áp dụng" is visible
+
+tap "Trang chủ"
+wait for "Trang chủ"
+assert "Ngân sách tháng còn lại" is visible
+

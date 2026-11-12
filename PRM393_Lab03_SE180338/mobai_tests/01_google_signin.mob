@@ -1,0 +1,9 @@
+# Test 01: Google Sign-In
+# Goal: Verify user can sign in with Google test account and arrive at Home Screen
+
+wait for "Đăng nhập với Google"
+tap "Đăng nhập với Google"
+wait for "Trang chủ"
+assert "Ngân sách tháng còn lại" is visible
+assert "Thêm khoản chi" is visible
+

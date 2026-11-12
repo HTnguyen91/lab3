@@ -1,0 +1,137 @@
+import 'package:flutter/material.dart';
+
+import '../theme/app_colors.dart';
+import '../theme/app_spacing.dart';
+import '../theme/app_text_styles.dart';
+import '../utils/formatters.dart';
+import '../viewmodels/budget_viewmodel.dart';
+
+class BudgetCard extends StatelessWidget {
+  final BudgetCategoryStatus status;
+  final VoidCallback? onEdit;
+
+  const BudgetCard({super.key, required this.status, this.onEdit});
+
+  @override
+  Widget build(BuildContext context) {
+    Color statusColor;
+    Color statusBgColor;
+
+    switch (status.status) {
+      case BudgetStatus.exceeded:
+        statusColor = AppColors.error;
+        statusBgColor = AppColors.errorBackground;
+        break;
+      case BudgetStatus.reached:
+        statusColor = AppColors.error;
+        statusBgColor = AppColors.errorBackground;
+        break;
+      case BudgetStatus.warning:
+        statusColor = AppColors.warning;
+        statusBgColor = AppColors.warningBackground;
+        break;
+      case BudgetStatus.normal:
+        statusColor = AppColors.success;
+        statusBgColor = const Color(0xFFDCFCE7);
+        break;
+    }
+
+    final clampedProgress = status.percentage.clamp(0.0, 1.0);
+
+    return Container(
+      padding: AppSpacing.cardPadding,
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppSpacing.cardRadius,
+        border: Border.all(color: AppColors.divider, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Category Name & Status Badge
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(status.budget.categoryName, style: AppTextStyles.groupTitle),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: statusBgColor,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusTag),
+                ),
+                child: Text(
+                  status.statusLabel,
+                  style: AppTextStyles.caption.copyWith(
+                    color: statusColor,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.s12),
+
+          // Progress Bar
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: clampedProgress,
+              minHeight: 10,
+              backgroundColor: AppColors.divider,
+              valueColor: AlwaysStoppedAnimation<Color>(statusColor),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.s12),
+
+          // Details: Hạn mức, Đã chi, Còn lại
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Hạn mức', style: AppTextStyles.caption),
+                  const SizedBox(height: 2),
+                  Text(
+                    Formatters.formatCurrency(status.budget.limitAmount),
+                    style: AppTextStyles.buttonAndLabel,
+                  ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text('Đã chi', style: AppTextStyles.caption),
+                  const SizedBox(height: 2),
+                  Text(
+                    Formatters.formatCurrency(status.spentAmount),
+                    style: AppTextStyles.buttonAndLabel.copyWith(
+                      color: AppColors.expense,
+                    ),
+                  ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text('Còn lại', style: AppTextStyles.caption),
+                  const SizedBox(height: 2),
+                  Text(
+                    Formatters.formatCurrency(status.remainingAmount),
+                    style: AppTextStyles.buttonAndLabel.copyWith(
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}

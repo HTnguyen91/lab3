@@ -1,0 +1,16 @@
+# Test 04: Lab 2 Flow 3 - Happy Path
+# Goal: Quoc Huy sets a 3.000.000 VNĐ budget for "Ăn uống" and checks remaining amount and progress bar
+
+wait for "Ngân sách"
+tap "Ngân sách"
+wait for "Hạn mức theo danh mục"
+tap "Thêm mới"
+wait for "Tạo ngân sách danh mục"
+tap "Hạn mức ngân sách"
+type "3000000"
+tap "Lưu ngân sách"
+wait for "Ngân sách danh mục"
+assert "Ăn uống" is visible
+assert "3.000.000 VNĐ" is visible
+assert "Trong hạn mức" is visible
+

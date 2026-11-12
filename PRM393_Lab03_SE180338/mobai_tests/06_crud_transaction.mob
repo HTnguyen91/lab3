@@ -1,0 +1,37 @@
+# Test 06: Full CRUD Lifecycle for Main Entity (Transaction)
+# Goal: Create transaction -> View in history -> Edit note -> Delete transaction
+
+# Create
+wait for "Thêm khoản chi"
+tap "Thêm khoản chi"
+wait for "Thêm giao dịch"
+tap "Số tiền"
+type "120000"
+tap "Ghi chú (tùy chọn)"
+type "Mua sách tham khảo"
+tap "Lưu giao dịch"
+wait for "Trang chủ"
+
+# Read & View
+tap "Lịch sử"
+wait for "Lịch sử giao dịch"
+assert "Mua sách tham khảo" is visible
+tap "Mua sách tham khảo"
+wait for "Chi tiết giao dịch"
+assert "120.000 VNĐ" is visible
+
+# Update (Edit note)
+tap "Chỉnh sửa ghi chú"
+wait for "Chỉnh sửa ghi chú"
+tap "Nhập ghi chú mới"
+type " - Đã cập nhật"
+tap "Lưu"
+assert "Đã cập nhật giao dịch." is visible
+
+# Delete
+tap "Xóa giao dịch này"
+wait for "Xác nhận xóa giao dịch"
+tap "Xóa"
+wait for "Lịch sử giao dịch"
+assert "Đã xóa giao dịch thành công." is visible
+

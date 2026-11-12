@@ -1,0 +1,15 @@
+# Test 03: Lab 2 Flow 2 - Happy Path
+# Goal: Ngoc Linh views monthly statistics, identifies top spending category and navigates to its breakdown
+
+wait for "Thống kê"
+tap "Thống kê"
+wait for "Kỳ thống kê"
+assert "Chi tiêu theo danh mục" is visible
+assert "Ăn uống" is visible
+tap "Ăn uống"
+wait for "Chi tiết danh mục"
+assert "Tổng chi tháng" is visible
+assert "Danh sách khoản chi" is visible
+tap back
+assert "Thống kê chi tiêu" is visible
+

@@ -1,0 +1,15 @@
+# Test 08: Profile Screen and Remote Config Demonstration
+# Goal: Open Profile, verify user info, check Remote Config values and refresh
+
+wait for "Trang chủ"
+tap "Hồ sơ cá nhân & Cài đặt"
+wait for "Hồ sơ & Cài đặt Lab 3"
+assert "SE180338" is visible
+assert "Firebase Remote Config (Mục 6.6)" is visible
+assert "Hạn mức cảnh báo giao dịch lớn:" is visible
+assert "Banner khuyến mãi / Mẹo:" is visible
+tap "Làm mới Remote Config từ máy chủ"
+assert "Đã cập nhật Remote Config" is visible
+tap back
+wait for "Trang chủ"
+

@@ -1,0 +1,11 @@
+# Test 10: Sign Out Flow
+# Goal: User signs out from Profile and is redirected back to Login screen
+
+wait for "Trang chủ"
+tap "Hồ sơ cá nhân & Cài đặt"
+wait for "Hồ sơ & Cài đặt Lab 3"
+tap "Đăng xuất tài khoản"
+wait for "Đăng nhập với Google"
+assert "Expense Tracker" is visible
+assert "Quản lý chi tiêu cá nhân thông minh & trực quan" is visible
+

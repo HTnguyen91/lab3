@@ -145,7 +145,7 @@ class BudgetViewModel extends ChangeNotifier {
         BudgetCategoryStatus(
           budget: budget,
           spentAmount: spent,
-          remainingAmount: remaining > 0 ? remaining : 0.0,
+          remainingAmount: remaining,
           percentage: ratio,
           status: status,
           statusLabel: label,
@@ -161,7 +161,7 @@ class BudgetViewModel extends ChangeNotifier {
     final statuses = calculateStatuses(transactions);
     if (statuses.isEmpty) {
       // Default fallback if no budget is set yet
-      return 1200000.0;
+      return 0.0;
     }
     return statuses.fold(0.0, (sum, s) => sum + s.remainingAmount);
   }

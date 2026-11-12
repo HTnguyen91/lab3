@@ -9,6 +9,7 @@ class TransactionModel {
   final String categoryName;
   final DateTime date;
   final String note;
+  final String? paymentMethod;
   final DateTime createdAt;
 
   TransactionModel({
@@ -20,6 +21,7 @@ class TransactionModel {
     required this.categoryName,
     required this.date,
     this.note = '',
+    this.paymentMethod,
     required this.createdAt,
   });
 
@@ -35,6 +37,7 @@ class TransactionModel {
       'categoryName': categoryName,
       'date': Timestamp.fromDate(date),
       'note': note,
+      if (paymentMethod != null) 'paymentMethod': paymentMethod,
       'createdAt': Timestamp.fromDate(createdAt),
     };
   }
@@ -56,6 +59,7 @@ class TransactionModel {
       categoryName: map['categoryName'] ?? 'Khác',
       date: parseDate(map['date']),
       note: map['note'] ?? '',
+      paymentMethod: map['paymentMethod'] as String?,
       createdAt: parseDate(map['createdAt']),
     );
   }
@@ -69,6 +73,7 @@ class TransactionModel {
     String? categoryName,
     DateTime? date,
     String? note,
+    String? paymentMethod,
     DateTime? createdAt,
   }) {
     return TransactionModel(
@@ -80,8 +85,8 @@ class TransactionModel {
       categoryName: categoryName ?? this.categoryName,
       date: date ?? this.date,
       note: note ?? this.note,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
       createdAt: createdAt ?? this.createdAt,
     );
   }
 }
-

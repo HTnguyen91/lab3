@@ -7,8 +7,8 @@ import '../utils/constants.dart';
 import '../utils/formatters.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/input_field.dart';
+import '../widgets/design_widgets.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
 
 class AddTransactionScreen extends StatefulWidget {
@@ -38,7 +38,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     _selectedType = widget.initialType;
     // Pre-select category if specified, default to Ăn uống (cat_food)
     _selectedCategory = AppConstants.defaultCategories.firstWhere(
-      (c) => c.name == (widget.prefillCategory ?? 'Ăn uống'),
+      (c) => widget.initialType == 'income'
+          ? c.isIncome
+          : c.name == (widget.prefillCategory ?? 'Ăn uống'),
       orElse: () => AppConstants.defaultCategories.first,
     );
   }
@@ -111,11 +113,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   color: AppColors.success,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.check,
-                  size: 16,
-                  color: Colors.white,
-                ),
+                child: const Icon(Icons.check, size: 16, color: Colors.white),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -133,240 +131,256 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           duration: const Duration(seconds: 3),
         ),
       );
+      _allowPop = true;
       Navigator.of(context).pop();
+    } else if (mounted) {
+      setState(
+        () => _saveError =
+            'Không thể lưu giao dịch. Kiểm tra kết nối và thử lại.',
+      );
     }
+  }
+
+  bool _allowPop = false;
+  String? _saveError;
+  bool get _dirty =>
+      _amountController.text.isNotEmpty || _noteController.text.isNotEmpty;
+  Future<void> _close() async {
+    if (context.read<TransactionViewModel>().isSaving) return;
+    if (_dirty && !await confirmDiscard(context)) return;
+    if (!mounted) return;
+    context.read<TransactionViewModel>().clearValidationErrors();
+    setState(() => _allowPop = true);
+    if (mounted) Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<TransactionViewModel>();
-    final filteredCategories = AppConstants.defaultCategories
+    final categories = AppConstants.defaultCategories
         .where((c) => _selectedType == 'income' ? c.isIncome : !c.isIncome)
         .toList();
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Thêm giao dịch'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            vm.clearValidationErrors();
-            Navigator.of(context).pop();
-          },
+    return PopScope(
+      canPop: _allowPop,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) _close();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Thêm Giao Dịch'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: _close,
+          ),
         ),
-      ),
-      body: SingleChildScrollView(
-        padding: AppSpacing.screenPadding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Transaction Type Selector (Khoản chi / Khoản thu)
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.divider,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              padding: const EdgeInsets.all(4),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedType = 'expense';
-                          _selectedCategory = AppConstants.defaultCategories
-                              .firstWhere((c) => !c.isIncome);
-                        });
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        decoration: BoxDecoration(
-                          color: _selectedType == 'expense'
-                              ? AppColors.surface
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryTint,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    for (final type in ['expense', 'income'])
+                      Expanded(
+                        child: Material(
+                          color: _selectedType == type
+                              ? AppColors.primary
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(8),
-                          boxShadow: _selectedType == 'expense'
-                              ? [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
-                                    blurRadius: 4,
-                                  ),
-                                ]
-                              : [],
-                        ),
-                        child: Text(
-                          'Khoản chi',
-                          textAlign: TextAlign.center,
-                          style: AppTextStyles.buttonAndLabel.copyWith(
-                            color: _selectedType == 'expense'
-                                ? AppColors.expense
-                                : AppColors.textSecondary,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: vm.isSaving
+                                ? null
+                                : () => setState(() {
+                                    _selectedType = type;
+                                    _selectedCategory = AppConstants
+                                        .defaultCategories
+                                        .firstWhere(
+                                          (c) =>
+                                              c.isIncome == (type == 'income'),
+                                        );
+                                  }),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              child: Text(
+                                type == 'expense' ? 'Khoản chi' : 'Khoản thu',
+                                textAlign: TextAlign.center,
+                                style: AppTextStyles.buttonAndLabel.copyWith(
+                                  color: _selectedType == type
+                                      ? Colors.white
+                                      : AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedType = 'income';
-                          _selectedCategory = AppConstants.defaultCategories
-                              .firstWhere((c) => c.isIncome);
-                        });
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        decoration: BoxDecoration(
-                          color: _selectedType == 'income'
-                              ? AppColors.surface
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: _selectedType == 'income'
-                              ? [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
-                                    blurRadius: 4,
-                                  ),
-                                ]
-                              : [],
-                        ),
-                        child: Text(
-                          'Khoản thu',
-                          textAlign: TextAlign.center,
-                          style: AppTextStyles.buttonAndLabel.copyWith(
-                            color: _selectedType == 'income'
-                                ? AppColors.income
-                                : AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.s24),
-
-            // Amount Input Field (Bắt buộc, hậu tố VNĐ)
-            InputField(
-              label: 'Số tiền',
-              hintText: 'Nhập số tiền (ví dụ: 45.000)',
-              suffixText: 'VNĐ',
-              controller: _amountController,
-              keyboardType: TextInputType.number,
-              errorText: vm.amountError,
-              prefixIcon: const Icon(
-                Icons.attach_money,
-                color: AppColors.textSecondary,
-              ),
-              onChanged: (_) {
-                if (vm.amountError != null) vm.clearValidationErrors();
-              },
-            ),
-            const SizedBox(height: AppSpacing.s16),
-
-            // Category Selector
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Danh mục',
-                  style: AppTextStyles.buttonAndLabel.copyWith(
-                    color: AppColors.textPrimary,
-                  ),
+                  ],
                 ),
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: AppSpacing.inputRadius,
-                    border: Border.all(
-                      color: vm.categoryError != null
-                          ? AppColors.error
-                          : AppColors.inputBorder,
-                      width: 1,
+              ),
+              const SizedBox(height: 16),
+              DesignCard(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 24,
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      _selectedType == 'expense'
+                          ? 'SỐ TIỀN CHI TIÊU'
+                          : 'SỐ TIỀN THU NHẬP',
+                      style: AppTextStyles.caption,
                     ),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<CategoryModel>(
-                      value: _selectedCategory,
-                      isExpanded: true,
-                      hint: const Text(
-                        'Chọn một danh mục',
-                        style: AppTextStyles.caption,
+                    TextField(
+                      controller: _amountController,
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.prominentAmount,
+                      decoration: InputDecoration(
+                        hintText: '0',
+                        suffixText: 'VNĐ',
+                        filled: false,
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        errorText: vm.amountError,
                       ),
-                      items: filteredCategories.map((cat) {
-                        return DropdownMenuItem<CategoryModel>(
-                          value: cat,
-                          child: Row(
-                            children: [
-                              Icon(cat.icon, size: 20, color: cat.color),
-                              const SizedBox(width: AppSpacing.s12),
-                              Text(cat.name, style: AppTextStyles.bodyMedium),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (cat) {
-                        setState(() {
-                          _selectedCategory = cat;
-                        });
-                        if (vm.categoryError != null) {
-                          vm.clearValidationErrors();
-                        }
+                      onChanged: (_) {
+                        if (vm.amountError != null) vm.clearValidationErrors();
                       },
                     ),
-                  ),
+                  ],
                 ),
-                if (vm.categoryError != null) ...[
-                  const SizedBox(height: 4),
-                  Text(vm.categoryError!, style: AppTextStyles.errorCaption),
-                ],
-              ],
-            ),
-            const SizedBox(height: AppSpacing.s16),
-
-            // Date Picker Field
-            InputField(
-              label: 'Ngày giao dịch',
-              hintText: Formatters.formatDate(_selectedDate),
-              readOnly: true,
-              onTap: _pickDate,
-              prefixIcon: const Icon(
-                Icons.calendar_today_outlined,
-                color: AppColors.textSecondary,
               ),
-              suffixIcon: const Icon(
-                Icons.arrow_drop_down,
-                color: AppColors.textSecondary,
+              const SizedBox(height: 16),
+              DesignCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Danh mục',
+                            style: AppTextStyles.groupTitle,
+                          ),
+                        ),
+                        Flexible(
+                          child: Text(
+                            'Đã chọn: ${_selectedCategory?.name ?? "Chưa chọn"}',
+                            style: AppTextStyles.caption.copyWith(
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 88,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: categories.length,
+                        separatorBuilder: (_, index) =>
+                            const SizedBox(width: 8),
+                        itemBuilder: (ctx, i) {
+                          final cat = categories[i];
+                          final selected = _selectedCategory == cat;
+                          return Semantics(
+                            selected: selected,
+                            button: true,
+                            label: cat.name,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: vm.isSaving
+                                  ? null
+                                  : () =>
+                                        setState(() => _selectedCategory = cat),
+                              child: Container(
+                                width: 64,
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: selected
+                                      ? AppColors.primaryTint
+                                      : AppColors.background,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Column(
+                                  children: [
+                                    CategoryIcon(
+                                      name: cat.name,
+                                      selected: selected,
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      cat.name,
+                                      style: const TextStyle(fontSize: 10),
+                                      maxLines: 2,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    if (vm.categoryError != null)
+                      Text(
+                        vm.categoryError!,
+                        style: AppTextStyles.errorCaption,
+                      ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.s16),
-
-            // Note Field (Tùy chọn)
-            InputField(
-              label: 'Ghi chú (tùy chọn)',
-              hintText: 'Ví dụ: Ăn trưa cơm sườn, Cà phê cùng bạn...',
-              controller: _noteController,
-              prefixIcon: const Icon(
-                Icons.edit_note,
-                color: AppColors.textSecondary,
+              const SizedBox(height: 16),
+              DesignCard(
+                child: Column(
+                  children: [
+                    InputField(
+                      label: 'Ngày giao dịch',
+                      hintText: Formatters.formatDate(_selectedDate),
+                      readOnly: true,
+                      onTap: _pickDate,
+                      prefixIcon: const Icon(
+                        Icons.calendar_today_outlined,
+                        size: 20,
+                        color: AppColors.primary,
+                      ),
+                      suffixIcon: const Icon(Icons.keyboard_arrow_down),
+                    ),
+                    const SizedBox(height: 16),
+                    InputField(
+                      label: 'Ghi chú',
+                      hintText: 'Ví dụ: Cơm trưa sinh viên',
+                      controller: _noteController,
+                      prefixIcon: const Icon(Icons.edit_note, size: 20),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.s32),
-
-            // Save Button
-            PrimaryButton(
-              label: 'Lưu giao dịch',
-              isLoading: vm.isSaving,
-              onPressed: _handleSave,
-            ),
-          ],
+              const SizedBox(height: 24),
+              if (_saveError != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(_saveError!, style: AppTextStyles.errorCaption),
+                ),
+              PrimaryButton(
+                label: 'Lưu giao dịch',
+                icon: Icons.check_circle_outline,
+                isLoading: vm.isSaving,
+                onPressed: _handleSave,
+              ),
+            ],
+          ),
         ),
       ),
     );

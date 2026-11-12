@@ -6,6 +6,7 @@ import '../viewmodels/transaction_viewmodel.dart';
 import '../widgets/budget_card.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/primary_button.dart';
+import '../widgets/design_widgets.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
@@ -73,7 +74,7 @@ class BudgetScreen extends StatelessWidget {
               width: double.infinity,
               padding: AppSpacing.cardPadding,
               decoration: BoxDecoration(
-                color: AppColors.primaryTint,
+                color: AppColors.primary,
                 borderRadius: AppSpacing.cardRadius,
                 border: Border.all(color: AppColors.primary.withOpacity(0.3)),
               ),
@@ -85,13 +86,15 @@ class BudgetScreen extends StatelessWidget {
                       children: [
                         Text(
                           'Tổng hạn mức tháng',
-                          style: AppTextStyles.caption,
+                          style: AppTextStyles.caption.copyWith(
+                            color: Colors.white70,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           Formatters.formatCurrency(totalLimit),
                           style: AppTextStyles.groupTitle.copyWith(
-                            color: AppColors.primary,
+                            color: Colors.white,
                           ),
                         ),
                       ],
@@ -103,14 +106,17 @@ class BudgetScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Ngân sách còn lại', style: AppTextStyles.caption),
+                        Text(
+                          'Ngân sách còn lại',
+                          style: AppTextStyles.caption.copyWith(
+                            color: Colors.white70,
+                          ),
+                        ),
                         const SizedBox(height: 4),
                         Text(
                           Formatters.formatCurrency(totalRemaining),
                           style: AppTextStyles.groupTitle.copyWith(
-                            color: totalRemaining >= 0
-                                ? AppColors.income
-                                : AppColors.expense,
+                            color: Colors.white,
                           ),
                         ),
                       ],
@@ -121,6 +127,35 @@ class BudgetScreen extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.s24),
 
+            DesignCard(
+              color: AppColors.primaryTint,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Kiểm soát chi tiêu theo danh mục',
+                    style: AppTextStyles.groupTitle,
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Thiết lập ngân sách để theo dõi hạn mức và số tiền còn lại.',
+                    style: AppTextStyles.caption,
+                  ),
+                  const SizedBox(height: 16),
+                  PrimaryButton(
+                    label: 'Tạo ngân sách',
+                    icon: Icons.add,
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CreateBudgetScreen(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
             // Budgets List Header & Create Button
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -192,15 +227,6 @@ class BudgetScreen extends StatelessWidget {
               ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
-        onPressed: () {
-          Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => const CreateBudgetScreen()));
-        },
       ),
     );
   }

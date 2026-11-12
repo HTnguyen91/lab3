@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../viewmodels/transaction_viewmodel.dart';
-import '../viewmodels/statistics_viewmodel.dart';
+import '../widgets/design_widgets.dart';
 import '../widgets/transaction_row.dart';
 import '../widgets/empty_state.dart';
 import '../theme/app_colors.dart';
@@ -26,16 +26,19 @@ class CategoryDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final txVm = context.watch<TransactionViewModel>();
-    final statsVm = context.watch<StatisticsViewModel>();
-
-    final transactions = statsVm.getSelectedCategoryTransactions(
-      txVm.allTransactions,
-    );
+    final transactions = txVm.allTransactions
+        .where(
+          (tx) =>
+              tx.isExpense &&
+              tx.categoryId == categoryId &&
+              Formatters.formatMonth(tx.date) == month,
+        )
+        .toList();
     final totalSpent = transactions.fold(0.0, (s, tx) => s + tx.amount);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(categoryName),
+        title: const Text('Chi Tiêu Theo Danh Mục'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
@@ -51,13 +54,29 @@ class CategoryDetailScreen extends StatelessWidget {
               width: double.infinity,
               padding: AppSpacing.cardPadding,
               decoration: BoxDecoration(
-                color: AppColors.primaryTint,
+                color: AppColors.surface,
                 borderRadius: AppSpacing.cardRadius,
-                border: Border.all(color: AppColors.primary.withOpacity(0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Row(
+                    children: [
+                      CategoryIcon(name: categoryName),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          categoryName,
+                          style: AppTextStyles.groupTitle,
+                        ),
+                      ),
+                      Text(
+                        '${transactions.length} khoản',
+                        style: AppTextStyles.caption,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
                   Text(
                     'Tổng chi tháng $month',
                     style: AppTextStyles.caption.copyWith(
@@ -68,7 +87,7 @@ class CategoryDetailScreen extends StatelessWidget {
                   Text(
                     Formatters.formatCurrency(totalSpent),
                     style: AppTextStyles.prominentAmount.copyWith(
-                      color: AppColors.expense,
+                      color: AppColors.primary,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -82,7 +101,38 @@ class CategoryDetailScreen extends StatelessWidget {
             const SizedBox(height: AppSpacing.s24),
 
             // Transactions Header
-            const Text('Danh sách khoản chi', style: AppTextStyles.groupTitle),
+            DesignCard(
+              color: AppColors.warningBackground,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.lightbulb_outline, color: AppColors.warning),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          categoryId == 'cat_food'
+                              ? 'Mẹo ăn uống tiết kiệm'
+                              : 'Mẹo quản lý chi tiêu',
+                          style: AppTextStyles.buttonAndLabel,
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          categoryId == 'cat_food'
+                              ? 'Tự nấu ăn tại phòng trọ giúp giảm chi phí so với việc dùng bữa ngoài cổng trường.'
+                              : 'Theo dõi từng khoản chi và đặt hạn mức phù hợp để kiểm soát ngân sách tháng.',
+                          style: AppTextStyles.caption,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text('LỊCH SỬ CHI TIẾT', style: AppTextStyles.buttonAndLabel),
             const SizedBox(height: AppSpacing.s12),
 
             if (transactions.isEmpty)

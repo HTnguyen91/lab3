@@ -4,188 +4,285 @@ import 'package:provider/provider.dart';
 import '../viewmodels/transaction_viewmodel.dart';
 import '../viewmodels/budget_viewmodel.dart';
 import '../viewmodels/settings_viewmodel.dart';
-import '../widgets/overview_card.dart';
+import '../viewmodels/auth_viewmodel.dart';
+import '../widgets/design_widgets.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/transaction_row.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
+import '../utils/formatters.dart';
 import 's02_add_transaction_screen.dart';
 import 's04_detail_screen.dart';
+import 's08_create_budget_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final VoidCallback onOpenHistory;
-
   const HomeScreen({super.key, required this.onOpenHistory});
-
   @override
   Widget build(BuildContext context) {
     final txVm = context.watch<TransactionViewModel>();
     final budgetVm = context.watch<BudgetViewModel>();
-    final settingsVm = context.watch<SettingsViewModel>();
-
-    final totalRemaining = budgetVm.calculateTotalRemaining(
-      txVm.allTransactions,
+    final settings = context.watch<SettingsViewModel>();
+    final month = Formatters.formatMonth(DateTime.now());
+    final budgets = budgetVm.allBudgets.where((b) => b.month == month).toList();
+    final limit = budgets.fold(0.0, (s, b) => s + b.limitAmount);
+    final spent = txVm.allTransactions
+        .where(
+          (t) =>
+              t.isExpense &&
+              Formatters.formatMonth(t.date) == month &&
+              budgets.any((b) => b.categoryId == t.categoryId),
+        )
+        .fold(0.0, (s, t) => s + t.amount);
+    final today = txVm.allTransactions
+        .where((t) => DateUtils.isSameDay(t.date, DateTime.now()))
+        .length;
+    void add({String? category}) => Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AddTransactionScreen(prefillCategory: category),
+      ),
     );
-    final todaySpent = txVm.todayExpense;
-    final recentTxs = txVm.recentTransactions;
-
     return RefreshIndicator(
-      onRefresh: () async {
-        await settingsVm.refreshRemoteConfig();
-      },
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: AppSpacing.screenPadding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Remote Config Promo Banner
-            if (settingsVm.enableBudgetTips &&
-                settingsVm.promoBannerText.isNotEmpty)
-              Container(
-                margin: const EdgeInsets.only(bottom: AppSpacing.s16),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryTint,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.primary.withOpacity(0.3)),
-                ),
-                child: Row(
+      onRefresh: settings.refreshRemoteConfig,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(
-                      Icons.lightbulb_outline,
-                      color: AppColors.primary,
-                      size: 20,
+                    Text(
+                      'Chào ${context.watch<AuthViewModel>().displayName}',
+                      style: AppTextStyles.groupTitle,
                     ),
-                    const SizedBox(width: AppSpacing.s8),
-                    Expanded(
-                      child: Text(
-                        settingsVm.promoBannerText,
-                        style: AppTextStyles.caption.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                    const Text(
+                      'Quản lý chi tiêu sinh viên',
+                      style: AppTextStyles.caption,
                     ),
                   ],
                 ),
               ),
-
-            // Top Overview Card: Ngân sách tháng còn lại & Chi tiêu hôm nay
-            OverviewCard(
-              title: 'Ngân sách tháng còn lại',
-              amount: totalRemaining,
-              subtitle: 'Tổng chi hôm nay',
-              subtitleAmount: todaySpent,
-              isHighlight: true,
-            ),
-            const SizedBox(height: AppSpacing.s16),
-
-            // Main Action Button: Thêm khoản chi
-            PrimaryButton(
-              label: 'Thêm khoản chi',
-              icon: Icons.add_circle_outline,
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const AddTransactionScreen(),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: AppSpacing.s24),
-
-            // Recent Transactions Section Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Giao dịch gần đây',
-                  style: AppTextStyles.groupTitle,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDCFCE7),
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                TextButton(
-                  onPressed: onOpenHistory,
-                  child: Text(
-                    'Xem tất cả',
-                    style: AppTextStyles.buttonAndLabel.copyWith(
-                      color: AppColors.primary,
+                child: Text(
+                  budgets.isEmpty
+                      ? 'Bắt đầu tiết kiệm'
+                      : spent > limit
+                      ? 'Vượt hạn mức'
+                      : 'Tiết kiệm tốt',
+                  style: TextStyle(fontSize: 10, color: AppColors.income),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          DesignCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  budgets.isEmpty
+                      ? 'Ngân sách tháng'
+                      : 'Ngân sách tháng còn lại',
+                  style: AppTextStyles.caption,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  budgets.isEmpty
+                      ? 'Chưa thiết lập'
+                      : Formatters.formatCurrency(limit - spent),
+                  style: AppTextStyles.prominentAmount.copyWith(
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (budgets.isNotEmpty) ...[
+                  Wrap(
+                    spacing: 16,
+                    runSpacing: 4,
+                    children: [
+                      Text(
+                        'Đã chi: ${Formatters.formatCurrency(spent)}',
+                        style: AppTextStyles.caption,
+                      ),
+                      Text(
+                        'Hạn mức: ${Formatters.formatCurrency(limit)}',
+                        style: AppTextStyles.caption,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: LinearProgressIndicator(
+                      value: limit > 0 ? (spent / limit).clamp(0, 1) : 0,
+                      minHeight: 6,
+                      backgroundColor: AppColors.primaryTint,
+                      color: spent > limit
+                          ? AppColors.expense
+                          : AppColors.primary,
                     ),
                   ),
+                ] else
+                  TextButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CreateBudgetScreen(),
+                      ),
+                    ),
+                    child: const Text('Thiết lập ngân sách ngay →'),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          DesignCard(
+            color: AppColors.primaryTint,
+            child: Row(
+              children: [
+                const CategoryIcon(name: 'Hóa đơn & Tiện ích'),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Hôm nay, ${Formatters.formatDate(DateTime.now())}',
+                        style: AppTextStyles.caption,
+                      ),
+                      Text(
+                        '$today giao dịch phát sinh',
+                        style: AppTextStyles.buttonAndLabel,
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '−${Formatters.formatCurrency(txVm.todayExpense)}',
+                      style: AppTextStyles.buttonAndLabel.copyWith(
+                        color: AppColors.expense,
+                      ),
+                    ),
+                    const Text(
+                      'Tổng chi hôm nay',
+                      style: AppTextStyles.caption,
+                    ),
+                  ],
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.s8),
-
-            // Recent Transactions List
-            if (txVm.isLoading)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(AppSpacing.s24),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else if (recentTxs.isEmpty)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(AppSpacing.s24),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: AppSpacing.cardRadius,
-                  border: Border.all(color: AppColors.divider),
-                ),
-                child: Column(
-                  children: [
-                    const Icon(
-                      Icons.receipt_long_outlined,
-                      size: 40,
-                      color: AppColors.textTertiary,
-                    ),
-                    const SizedBox(height: AppSpacing.s8),
-                    const Text(
-                      'Chưa có giao dịch nào',
-                      style: AppTextStyles.bodyMedium,
-                    ),
-                    const SizedBox(height: AppSpacing.s4),
-                    const Text(
-                      'Bấm "Thêm khoản chi" hoặc tạo dữ liệu mẫu Lab 2.',
-                      style: AppTextStyles.caption,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: AppSpacing.s16),
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.dataset_outlined, size: 18),
-                      label: const Text('Tạo dữ liệu mẫu Lab 2'),
-                      onPressed: () => txVm.seedInitialData(),
-                    ),
-                  ],
-                ),
-              )
-            else
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: recentTxs.length,
-                itemBuilder: (context, index) {
-                  final tx = recentTxs[index];
-                  return TransactionRow(
-                    transaction: tx,
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              TransactionDetailScreen(transaction: tx),
+          ),
+          const SizedBox(height: 12),
+          PrimaryButton(
+            label: 'Thêm khoản chi',
+            icon: Icons.add_circle_outline,
+            onPressed: () => add(),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Mục hay chi hôm nay',
+            style: AppTextStyles.buttonAndLabel,
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              for (final item in [
+                ('Ăn uống', Icons.lunch_dining_outlined, 'Ăn uống'),
+                ('Cà phê', Icons.local_cafe_outlined, 'Ăn uống'),
+                ('Xe buýt', Icons.directions_bus_outlined, 'Đi lại'),
+                ('In ấn', Icons.print_outlined, 'Học tập & Sách'),
+              ])
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    child: Material(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () => add(category: item.$3),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Column(
+                            children: [
+                              Icon(item.$2, color: AppColors.primary, size: 22),
+                              const SizedBox(height: 8),
+                              Text(item.$1, style: AppTextStyles.caption),
+                            ],
+                          ),
                         ),
-                      );
-                    },
-                  );
-                },
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Text('Gần đây', style: AppTextStyles.groupTitle),
               ),
-          ],
-        ),
+              TextButton(
+                onPressed: onOpenHistory,
+                child: const Text('Xem tất cả ›'),
+              ),
+            ],
+          ),
+          if (txVm.isLoading)
+            const Center(child: CircularProgressIndicator())
+          else if (txVm.recentTransactions.isEmpty)
+            DesignCard(
+              child: Column(
+                children: [
+                  const Icon(
+                    Icons.receipt_long_outlined,
+                    color: AppColors.primary,
+                    size: 32,
+                  ),
+                  const SizedBox(height: 12),
+                  const Text('Chưa có giao dịch nào'),
+                  TextButton(
+                    onPressed: () => add(),
+                    child: const Text('Thêm khoản chi đầu tiên'),
+                  ),
+                ],
+              ),
+            )
+          else
+            ...txVm.recentTransactions.map(
+              (tx) => TransactionRow(
+                transaction: tx,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => TransactionDetailScreen(transaction: tx),
+                  ),
+                ),
+              ),
+            ),
+          if (settings.enableBudgetTips && settings.promoBannerText.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: DesignCard(
+                color: AppColors.primaryTint,
+                child: Text(
+                  settings.promoBannerText,
+                  style: AppTextStyles.caption,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

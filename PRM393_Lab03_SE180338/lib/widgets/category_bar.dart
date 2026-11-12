@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import 'design_widgets.dart';
 import '../theme/app_text_styles.dart';
 import '../utils/formatters.dart';
 
@@ -33,6 +34,8 @@ class CategoryBar extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                CategoryIcon(name: categoryName),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     categoryName,
@@ -42,9 +45,10 @@ class CategoryBar extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '${Formatters.formatCurrency(amount)} (${percentage.toStringAsFixed(1)}%)',
+                  '${Formatters.formatCurrency(amount)}\n${percentage.toStringAsFixed(1)}%',
                   style: AppTextStyles.buttonAndLabel.copyWith(
-                    color: AppColors.expense,
+                    color: AppColors.textPrimary,
+                    fontSize: 12,
                   ),
                 ),
               ],
@@ -53,7 +57,7 @@ class CategoryBar extends StatelessWidget {
             Stack(
               children: [
                 Container(
-                  height: 10,
+                  height: 6,
                   width: double.infinity,
                   decoration: BoxDecoration(
                     color: AppColors.divider,
@@ -63,7 +67,7 @@ class CategoryBar extends StatelessWidget {
                 FractionallySizedBox(
                   widthFactor: clampedRatio > 0 ? clampedRatio : 0.02,
                   child: Container(
-                    height: 10,
+                    height: 6,
                     decoration: BoxDecoration(
                       color: AppColors.primary,
                       borderRadius: BorderRadius.circular(5),

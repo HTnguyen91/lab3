@@ -4,251 +4,232 @@ import 'package:provider/provider.dart';
 import '../viewmodels/transaction_viewmodel.dart';
 import '../viewmodels/statistics_viewmodel.dart';
 import '../widgets/category_bar.dart';
+import '../widgets/design_widgets.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
 import '../utils/formatters.dart';
 import 's06_category_detail_screen.dart';
 
-class StatisticsScreen extends StatefulWidget {
+class StatisticsScreen extends StatelessWidget {
   const StatisticsScreen({super.key});
-
-  @override
-  State<StatisticsScreen> createState() => _StatisticsScreenState();
-}
-
-class _StatisticsScreenState extends State<StatisticsScreen> {
   @override
   Widget build(BuildContext context) {
     final txVm = context.watch<TransactionViewModel>();
-    final statsVm = context.watch<StatisticsViewModel>();
+    final vm = context.watch<StatisticsViewModel>();
+    final all = txVm.allTransactions;
+    final income = vm.getTotalIncome(all),
+        expense = vm.getTotalExpense(all),
+        balance = vm.getBalance(all);
+    final breakdown = vm.getCategoryBreakdown(all);
+    final now = DateTime.now();
+    final months = {
+      ...List.generate(
+        12,
+        (i) => Formatters.formatMonth(DateTime(now.year, now.month - i)),
+      ),
+      vm.selectedMonth,
+    }.toList();
+    void step(int delta) {
+      final parts = vm.selectedMonth.split('/');
+      vm.setSelectedMonth(
+        Formatters.formatMonth(
+          DateTime(int.parse(parts[1]), int.parse(parts[0]) + delta),
+        ),
+      );
+    }
 
-    final allTxs = txVm.allTransactions;
-    final totalIncome = statsVm.getTotalIncome(allTxs);
-    final totalExpense = statsVm.getTotalExpense(allTxs);
-    final balance = statsVm.getBalance(allTxs);
-    final breakdown = statsVm.getCategoryBreakdown(allTxs);
-
-    return Scaffold(
-      body: SingleChildScrollView(
-        padding: AppSpacing.screenPadding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Month Filter Selector
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Kỳ thống kê', style: AppTextStyles.groupTitle),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.divider),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.calendar_month_outlined,
-                        size: 18,
-                        color: AppColors.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: statsVm.selectedMonth,
-                          items: _getAvailableMonths().map((m) {
-                            return DropdownMenuItem(
-                              value: m,
-                              child: Text(
-                                m,
-                                style: AppTextStyles.buttonAndLabel,
-                              ),
-                            );
-                          }).toList(),
-                          onChanged: (newMonth) {
-                            if (newMonth != null) {
-                              statsVm.setSelectedMonth(newMonth);
-                            }
-                          },
-                        ),
-                      ),
-                    ],
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        DesignCard(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Row(
+            children: [
+              IconButton(
+                onPressed: () => step(-1),
+                icon: const Icon(Icons.chevron_left),
+              ),
+              const Icon(
+                Icons.calendar_month_outlined,
+                color: AppColors.primary,
+                size: 20,
+              ),
+              Expanded(
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    isExpanded: true,
+                    value: vm.selectedMonth,
+                    items: months
+                        .map(
+                          (m) => DropdownMenuItem(
+                            value: m,
+                            child: Text(
+                              'Tháng $m',
+                              style: AppTextStyles.buttonAndLabel,
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (m) {
+                      if (m != null) vm.setSelectedMonth(m);
+                    },
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.s16),
-
-            // Summary 3-Box Header (Tổng thu, Tổng chi, Số dư)
-            Container(
-              padding: AppSpacing.cardPadding,
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: AppSpacing.cardRadius,
-                border: Border.all(color: AppColors.divider),
               ),
-              child: Row(
+              IconButton(
+                onPressed: () => step(1),
+                icon: const Icon(Icons.chevron_right),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        DesignCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('TỔNG QUAN TÀI CHÍNH', style: AppTextStyles.caption),
+              const SizedBox(height: 16),
+              Row(
                 children: [
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Tổng thu', style: AppTextStyles.caption),
-                        const SizedBox(height: 4),
-                        Text(
-                          Formatters.formatCurrency(totalIncome),
-                          style: AppTextStyles.buttonAndLabel.copyWith(
-                            color: AppColors.income,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
+                    child: _summary(
+                      '↓ Tổng chi',
+                      '−${Formatters.formatCurrency(expense)}',
+                      AppColors.expense,
                     ),
                   ),
-                  Container(width: 1, height: 36, color: AppColors.divider),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Tổng chi', style: AppTextStyles.caption),
-                        const SizedBox(height: 4),
-                        Text(
-                          Formatters.formatCurrency(totalExpense),
-                          style: AppTextStyles.buttonAndLabel.copyWith(
-                            color: AppColors.expense,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(width: 1, height: 36, color: AppColors.divider),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Số dư', style: AppTextStyles.caption),
-                        const SizedBox(height: 4),
-                        Text(
-                          Formatters.formatCurrency(balance),
-                          style: AppTextStyles.buttonAndLabel.copyWith(
-                            color: balance >= 0
-                                ? AppColors.primary
-                                : AppColors.error,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
+                    child: _summary(
+                      '↑ Tổng thu',
+                      '+${Formatters.formatCurrency(income)}',
+                      AppColors.income,
                     ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: AppSpacing.s24),
-
-            // Category Breakdown Section
-            const Text(
-              'Chi tiêu theo danh mục',
-              style: AppTextStyles.groupTitle,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Chạm một danh mục để xem chi tiết các khoản chi',
-              style: AppTextStyles.caption,
-            ),
-            const SizedBox(height: AppSpacing.s12),
-
-            if (breakdown.isEmpty)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 40,
-                  horizontal: 20,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: AppSpacing.cardRadius,
-                  border: Border.all(color: AppColors.divider),
-                ),
-                child: Column(
+              const SizedBox(height: 12),
+              DesignCard(
+                color: AppColors.primaryTint,
+                padding: const EdgeInsets.all(12),
+                child: Wrap(
+                  spacing: 12,
+                  runSpacing: 8,
                   children: [
-                    const Icon(
-                      Icons.bar_chart_outlined,
-                      size: 48,
-                      color: AppColors.textTertiary,
-                    ),
-                    const SizedBox(height: AppSpacing.s12),
                     const Text(
-                      'Chưa có khoản chi trong tháng này.',
-                      style: AppTextStyles.bodyMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Chọn tháng khác để xem thống kê.',
+                      'Thặng dư tích lũy:',
                       style: AppTextStyles.caption,
-                      textAlign: TextAlign.center,
+                    ),
+                    Text(
+                      Formatters.formatCurrency(balance),
+                      style: AppTextStyles.buttonAndLabel.copyWith(
+                        color: balance < 0
+                            ? AppColors.expense
+                            : AppColors.primary,
+                      ),
                     ),
                   ],
                 ),
-              )
-            else
-              Container(
-                padding: AppSpacing.cardPadding,
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: AppSpacing.cardRadius,
-                  border: Border.all(color: AppColors.divider),
-                ),
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: breakdown.length,
-                  separatorBuilder: (_, _) =>
-                      const Divider(height: 16, color: AppColors.divider),
-                  itemBuilder: (context, index) {
-                    final item = breakdown[index];
-                    return CategoryBar(
-                      categoryName: item.categoryName,
-                      amount: item.totalAmount,
-                      percentage: item.percentage,
-                      onTap: () {
-                        statsVm.selectCategoryForDetail(
-                          item.categoryId,
-                          item.categoryName,
-                        );
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => CategoryDetailScreen(
-                              categoryId: item.categoryId,
-                              categoryName: item.categoryName,
-                              month: statsVm.selectedMonth,
-                            ),
-                          ),
-                        );
-                      },
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        Row(
+          children: [
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Chi tiêu theo danh mục',
+                    style: AppTextStyles.groupTitle,
+                  ),
+                  Text(
+                    'Sắp xếp theo giá trị giảm dần',
+                    style: AppTextStyles.caption,
+                  ),
+                ],
+              ),
+            ),
+            Text(
+              '${breakdown.length} danh mục',
+              style: AppTextStyles.caption.copyWith(color: AppColors.primary),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        if (txVm.isLoading)
+          const Center(child: CircularProgressIndicator())
+        else if (breakdown.isEmpty)
+          const DesignCard(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 32),
+              child: Column(
+                children: [
+                  Icon(Icons.bar_chart, size: 40, color: AppColors.primary),
+                  SizedBox(height: 16),
+                  Text('Chưa có khoản chi trong tháng này'),
+                  SizedBox(height: 8),
+                  Text(
+                    'Chọn tháng khác để xem thống kê.',
+                    style: AppTextStyles.caption,
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          ...breakdown.map(
+            (item) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: DesignCard(
+                padding: const EdgeInsets.all(12),
+                child: CategoryBar(
+                  categoryName: item.categoryName,
+                  amount: item.totalAmount,
+                  percentage: item.percentage,
+                  onTap: () {
+                    vm.selectCategoryForDetail(
+                      item.categoryId,
+                      item.categoryName,
+                    );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CategoryDetailScreen(
+                          categoryId: item.categoryId,
+                          categoryName: item.categoryName,
+                          month: vm.selectedMonth,
+                        ),
+                      ),
                     );
                   },
                 ),
               ),
-          ],
-        ),
-      ),
+            ),
+          ),
+      ],
     );
   }
 
-  List<String> _getAvailableMonths() {
-    final now = DateTime.now();
-    return List.generate(6, (i) {
-      final date = DateTime(now.year, now.month - i, 1);
-      return Formatters.formatMonth(date);
-    });
-  }
+  Widget _summary(String title, String amount, Color color) => DesignCard(
+    color: AppColors.background,
+    padding: const EdgeInsets.all(12),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: AppTextStyles.caption),
+        const SizedBox(height: 8),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            amount,
+            style: AppTextStyles.groupTitle.copyWith(color: color),
+          ),
+        ),
+      ],
+    ),
+  );
 }

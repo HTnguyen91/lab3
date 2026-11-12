@@ -36,6 +36,8 @@ class Formatters {
   }
 
   /// DateTime -> "10:30 12/11/2026"
+  static String formatTime(DateTime date) => DateFormat('HH:mm').format(date);
+
   static String formatDateTime(DateTime date) {
     return _dateTimeFormat.format(date);
   }

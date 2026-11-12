@@ -53,7 +53,24 @@ class _MainScaffoldState extends State<MainScaffold> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(titles[_currentIndex]),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Xin chào, ${authVm.displayName}',
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w400,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            Text(
+              titles[_currentIndex],
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
         actions: [
           IconButton(
             tooltip: 'Hồ sơ cá nhân & Cài đặt',
@@ -78,27 +95,43 @@ class _MainScaffoldState extends State<MainScaffold> {
       ),
       body: IndexedStack(index: _currentIndex, children: screens),
       bottomNavigationBar: Container(
-        height: 64,
+        height: 72,
         padding: const EdgeInsets.all(8),
         decoration: const BoxDecoration(
-          color: AppColors.surface,
-          border: Border(
-            top: BorderSide(color: AppColors.divider, width: 1),
-          ),
+          color: AppColors.background,
+          border: Border(top: BorderSide(color: AppColors.divider, width: 1)),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _buildNavItem(0, 'Trang chủ', Icons.home_rounded, Icons.home_outlined),
-            _buildNavItem(1, 'Lịch sử', Icons.history_rounded, Icons.history_outlined),
-            _buildNavItem(2, 'Thống kê', Icons.bar_chart_rounded, Icons.bar_chart_outlined),
-            _buildNavItem(
-              3,
-              'Ngân sách',
-              Icons.account_balance_wallet_rounded,
-              Icons.account_balance_wallet_outlined,
-            ),
-          ],
+        child: SafeArea(
+          top: false,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildNavItem(
+                0,
+                'Trang chủ',
+                Icons.home_rounded,
+                Icons.home_outlined,
+              ),
+              _buildNavItem(
+                1,
+                'Lịch sử',
+                Icons.history_rounded,
+                Icons.history_outlined,
+              ),
+              _buildNavItem(
+                2,
+                'Thống kê',
+                Icons.bar_chart_rounded,
+                Icons.bar_chart_outlined,
+              ),
+              _buildNavItem(
+                3,
+                'Ngân sách',
+                Icons.account_balance_wallet_rounded,
+                Icons.account_balance_wallet_outlined,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -121,7 +154,7 @@ class _MainScaffoldState extends State<MainScaffold> {
           height: 48,
           margin: const EdgeInsets.symmetric(horizontal: 2),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primaryTint : Colors.transparent,
+            color: Colors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -135,10 +168,15 @@ class _MainScaffoldState extends State<MainScaffold> {
               const SizedBox(height: 2),
               Text(
                 label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 11,
+                  height: 1.2,
                   fontWeight: FontWeight.w500,
-                  color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                  color: isSelected
+                      ? AppColors.primary
+                      : AppColors.textSecondary,
                 ),
               ),
             ],

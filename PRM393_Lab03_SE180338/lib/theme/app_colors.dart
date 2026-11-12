@@ -4,10 +4,10 @@ class AppColors {
   // Brand & Action
   static const Color primary = Color(0xFF1D4ED8);
   static const Color onPrimary = Color(0xFFFFFFFF);
-  static const Color primaryTint = Color(0xFFEFF6FF);
+  static const Color primaryTint = Color(0xFFEFEDFF);
 
   // Background & Surface
-  static const Color background = Color(0xFFF8FAFC);
+  static const Color background = Color(0xFFF8F7FE);
   static const Color surface = Color(0xFFFFFFFF);
   static const Color cardSurface = Color(0xFFFFFFFF);
 
@@ -42,4 +42,3 @@ class AppColors {
     Color(0xFF64748B), // Khác - Slate
   ];
 }
-

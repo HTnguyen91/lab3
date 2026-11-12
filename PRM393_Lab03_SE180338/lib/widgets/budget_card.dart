@@ -53,7 +53,12 @@ class BudgetCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(status.budget.categoryName, style: AppTextStyles.groupTitle),
+              Expanded(
+                child: Text(
+                  status.budget.categoryName,
+                  style: AppTextStyles.buttonAndLabel,
+                ),
+              ),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
@@ -63,6 +68,7 @@ class BudgetCard extends StatelessWidget {
                   color: statusBgColor,
                   borderRadius: BorderRadius.circular(AppSpacing.radiusTag),
                 ),
+                constraints: const BoxConstraints(maxWidth: 150),
                 child: Text(
                   status.statusLabel,
                   style: AppTextStyles.caption.copyWith(
@@ -75,56 +81,71 @@ class BudgetCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.s12),
 
-          // Details: Đã chi, Hạn mức, Còn lại (Figma order)
+          // Details: Đã chi, Hạn mức, Còn lại
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Đã chi', style: AppTextStyles.caption),
-                  const SizedBox(height: 2),
-                  Text(
-                    Formatters.formatCurrency(status.spentAmount),
-                    style: AppTextStyles.buttonAndLabel.copyWith(
-                      color: status.status == BudgetStatus.normal
-                          ? AppColors.textPrimary
-                          : statusColor,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Đã chi', style: AppTextStyles.caption),
+                    const SizedBox(height: 2),
+                    Text(
+                      Formatters.formatCurrency(status.spentAmount),
+                      style: AppTextStyles.buttonAndLabel.copyWith(
+                        color: status.status == BudgetStatus.normal
+                            ? AppColors.textPrimary
+                            : statusColor,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Hạn mức', style: AppTextStyles.caption),
-                  const SizedBox(height: 2),
-                  Text(
-                    Formatters.formatCurrency(status.budget.limitAmount),
-                    style: AppTextStyles.buttonAndLabel,
-                  ),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Còn lại', style: AppTextStyles.caption),
-                  const SizedBox(height: 2),
-                  Text(
-                    Formatters.formatCurrency(status.remainingAmount),
-                    style: AppTextStyles.buttonAndLabel.copyWith(
-                      color: status.status == BudgetStatus.normal
-                          ? AppColors.textPrimary
-                          : statusColor,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Hạn mức', style: AppTextStyles.caption),
+                    const SizedBox(height: 2),
+                    Text(
+                      Formatters.formatCurrency(status.budget.limitAmount),
+                      style: AppTextStyles.buttonAndLabel,
                     ),
-                  ),
-                ],
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Còn lại', style: AppTextStyles.caption),
+                    const SizedBox(height: 2),
+                    Text(
+                      Formatters.formatCurrency(status.remainingAmount),
+                      style: AppTextStyles.buttonAndLabel.copyWith(
+                        color: status.status == BudgetStatus.normal
+                            ? AppColors.textPrimary
+                            : statusColor,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.s12),
 
-          // Progress Bar (at bottom per Figma)
+          if (onEdit != null)
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: onEdit,
+                icon: const Icon(Icons.edit_outlined, size: 16),
+                label: const Text('Chỉnh sửa'),
+              ),
+            ),
+          // Progress Bar
           ClipRRect(
             borderRadius: BorderRadius.circular(999),
             child: LinearProgressIndicator(

@@ -8,6 +8,7 @@ class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'Roboto',
       scaffoldBackgroundColor: AppColors.background,
       colorScheme: const ColorScheme(
         brightness: Brightness.light,
@@ -26,8 +27,22 @@ class AppTheme {
         backgroundColor: AppColors.background,
         elevation: 0,
         centerTitle: false,
-        titleTextStyle: AppTextStyles.screenTitle,
+        titleTextStyle: TextStyle(
+          fontFamily: 'Roboto',
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          color: AppColors.textPrimary,
+        ),
+        surfaceTintColor: Colors.transparent,
         iconTheme: IconThemeData(color: AppColors.textPrimary, size: 24),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: AppColors.primaryTint,
+        selectedColor: AppColors.primary,
+        side: BorderSide.none,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        labelStyle: AppTextStyles.caption,
       ),
       cardTheme: CardThemeData(
         color: AppColors.cardSurface,
@@ -61,18 +76,18 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.surface,
+        fillColor: AppColors.primaryTint,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 14,
         ),
         border: OutlineInputBorder(
           borderRadius: AppSpacing.inputRadius,
-          borderSide: const BorderSide(color: AppColors.controlBorder, width: 1),
+          borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: AppSpacing.inputRadius,
-          borderSide: const BorderSide(color: AppColors.controlBorder, width: 1),
+          borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: AppSpacing.inputRadius,
